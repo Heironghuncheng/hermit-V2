@@ -219,7 +219,7 @@
 
 .interest-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.25rem 1.6rem;
   margin: 0;
   padding: 0;
@@ -266,7 +266,7 @@
 
 .timeline li {
   display: grid;
-  grid-template-columns: 5.6rem minmax(0, 1fr);
+  grid-template-columns: 9.4rem minmax(0, 1fr);
   gap: 0.8rem;
   padding: 0.3rem 0;
   font-size: 0.86rem;
@@ -278,6 +278,7 @@
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .timeline .what {
