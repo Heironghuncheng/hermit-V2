@@ -1,8 +1,4 @@
-/*
-* This file only deals with user provided variables
-* This does not have any dependency on `_colors.scss` that only handles site colors
-* This is optional for an user to edit. 
-*/
+@use "colors";
 
 /*
 * Variables related to base html and body styling
@@ -53,7 +49,7 @@ $blockquote-cite-before: "—— ";
 $link-text-decoration: none;
 $link-border: none;
 $link-transition: color .4s ease-out;
-$link-hover-text-shadow: 0 0 1px $a-hover;
+$link-hover-text-shadow: 0 0 1px colors.$a-hover;
 
 /*
 * Variables related to horizontal rule element
@@ -126,7 +122,7 @@ $site-nav-font-size: 1.1em;
 $site-nav-opacity: .8;
 
 // Childrem of Site Navigation
-$site-nav-children-border-right: 2px solid $site-nav-children-border-right;
+$site-nav-child-divider: 2px solid colors.$site-nav-children-border-right;
 $site-nav-children-padding-right: .5em;
 
 // Links within main navigation
@@ -164,8 +160,7 @@ $mobile-menu-padding: .6em 1.8em;
 $mobile-menu-z-index: 1;
 $mobile-menu-box-sizing: border-box;
 $mobile-menu-box-shadow: 2px 2px 2px rgba(0, 0, 0, .45);
-$mobile-menu-border: 2px solid;
-$mobile-menu-border-style: outset;
+$mobile-menu-border: 1px solid;
 $mobile-menu-border-radius: 10px;
 $mobile-menu-ul-list-style: none;
 $mobile-menu-ul-margin: 0;

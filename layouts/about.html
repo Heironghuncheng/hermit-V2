@@ -1,0 +1,316 @@
+{{ define "head" }}
+  {{- $style := resources.Get "css/about.css" | minify | fingerprint }}
+  <link rel="stylesheet" media="screen" href="{{ $style.RelPermalink }}" integrity="{{ $style.Data.Integrity }}">
+  {{- if .IsTranslated }}
+    {{- range .AllTranslations }}
+      <link rel="alternate" hreflang="{{ .Language.Name }}" href="{{ .Permalink }}">
+    {{- end }}
+  {{- end }}
+{{ end }}
+
+{{ define "header" }}
+  {{ partial "header.html" . }}
+{{ end }}
+
+{{ define "main" }}
+  {{- $isChinese := eq .Language.Name "zh" }}
+  {{- $name := .Site.Params.author.name | default .Title }}
+  {{- $fileName := replace $name " " "-" }}
+  {{- $noteLang := hugo.Sites.Default.Language.Name }}
+  {{- $portrait := "" }}{{ with .Params.portrait }}{{ $portrait = resources.Get . }}{{ end }}
+  {{- $cvZh := "" }}{{ with .Params.cv_zh }}{{ $cvZh = resources.Get . }}{{ end }}
+  {{- $cvEn := "" }}{{ with .Params.cv_en }}{{ $cvEn = resources.Get . }}{{ end }}
+
+  {{- /* Recent paper notes: posts carrying the notes tag, taken from the default language. */ -}}
+  {{- $notesTag := .Params.notes_tag | default "论文笔记" }}
+  {{- $notes := slice }}
+  {{- range hugo.Sites.Default.RegularPages }}
+    {{- if and (eq .Section "posts") (in .Params.tags $notesTag) }}
+      {{- $notes = $notes | append . }}
+    {{- end }}
+  {{- end }}
+  {{- $recentNotes := first (.Params.notes_count | default 2) (sort $notes "Date" "desc") }}
+
+  {{- /* GitHub data is fetched while Hugo builds the site. Set HUGO_GITHUB_TOKEN to
+         lift the anonymous rate limit; the front matter github_fallback table fills
+         in the numbers when a request fails. */ -}}
+  {{- $ghUser := "" }}
+  {{- with .Params.github }}{{ $ghUser = $.Params.github_user | default (path.Base (urls.Parse .).Path) }}{{ end }}
+  {{- $fallback := .Params.github_fallback | default dict }}
+  {{- $ghRepos := $fallback.repos }}
+  {{- $ghFollowers := $fallback.followers }}
+  {{- $ghSince := $fallback.since }}
+  {{- $ghPRs := $fallback.prs }}
+  {{- $ghRecentPRs := slice }}
+  {{- with $ghUser }}
+    {{- $headers := dict "Accept" "application/vnd.github+json" }}
+    {{- with os.Getenv "HUGO_GITHUB_TOKEN" }}{{ $headers = merge $headers (dict "Authorization" (printf "Bearer %s" .)) }}{{ end }}
+    {{- $opts := dict "headers" $headers }}
+
+    {{- with try (resources.GetRemote (printf "https://api.github.com/users/%s" .) $opts) }}
+      {{- with .Value }}
+        {{- $data := . | transform.Unmarshal }}
+        {{- with $data.public_repos }}{{ $ghRepos = . }}{{ end }}
+        {{- with $data.followers }}{{ $ghFollowers = . }}{{ end }}
+        {{- with $data.created_at }}{{ $ghSince = (time.AsTime .).Format "2006" }}{{ end }}
+      {{- end }}
+    {{- end }}
+
+    {{- /* The PR searches stay unauthenticated on purpose: anonymous search only
+           returns public repositories, which is the count we want. Authenticating
+           them would pull private repositories into the totals. */ -}}
+    {{- $since := (now.AddDate -1 0 0).Format "2006-01-02" }}
+    {{- $countQuery := printf "author:%s type:pr created:>=%s" . $since }}
+    {{- with try (resources.GetRemote (printf "https://api.github.com/search/issues?q=%s&per_page=1" ($countQuery | urlquery))) }}
+      {{- with .Value }}
+        {{- with (. | transform.Unmarshal).total_count }}{{ $ghPRs = . }}{{ end }}
+      {{- end }}
+    {{- end }}
+
+    {{- $listQuery := printf "author:%s type:pr" . }}
+    {{- $listURL := printf "https://api.github.com/search/issues?q=%s&sort=created&order=desc&per_page=%d" ($listQuery | urlquery) ($.Params.github_pr_count | default 5) }}
+    {{- with try (resources.GetRemote $listURL) }}
+      {{- with .Value }}
+        {{- with (. | transform.Unmarshal).items }}{{ $ghRecentPRs = . }}{{ end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+
+  <main class="site-main section-inner about-page">
+    <div class="academic-profile">
+      <aside class="profile-side">
+        {{- if .IsTranslated }}
+          <nav class="profile-lang" aria-label="{{ cond $isChinese "页面语言" "Page language" }}">
+            {{- range .AllTranslations }}
+              {{- $label := .Language.Label | default .Language.Name }}
+              {{- if eq .Language.Name $.Language.Name }}
+                <span aria-current="page" lang="{{ .Language.Name }}">{{ $label }}</span>
+              {{- else }}
+                <a href="{{ .RelPermalink }}" hreflang="{{ .Language.Name }}" lang="{{ .Language.Name }}">{{ $label }}</a>
+              {{- end }}
+            {{- end }}
+          </nav>
+        {{- end }}
+
+        {{- with $portrait }}
+          {{- $img := .Fit "480x640 webp q86" }}
+          <div class="profile-photo-frame">
+            <img class="profile-photo" src="{{ $img.RelPermalink }}" width="{{ $img.Width }}" height="{{ $img.Height }}" alt="{{ $name }}" decoding="async">
+          </div>
+        {{- end }}
+
+        <h1 class="profile-name">
+          {{ $name }}
+          {{- with .Params.name_zh }}<span class="profile-name-cn" lang="zh">{{ . }}</span>{{ end }}
+        </h1>
+        {{- with .Params.role }}<p class="profile-role">{{ . }}</p>{{ end }}
+        {{- with .Params.affiliation }}<p class="profile-affiliation">{{ . }}</p>{{ end }}
+        {{- with .Params.location }}<p class="profile-location">{{ . }}</p>{{ end }}
+
+        {{- /* Each row is icon + value; the service name stays available to screen readers and as a tooltip. */ -}}
+        <ul class="profile-links">
+          {{- with .Params.email }}
+            <li title="{{ cond $isChinese "邮箱" "Email" }}">
+              <span class="profile-link-icon" aria-hidden="true">{{ partial "svg.html" (dict "name" "email") }}</span>
+              <a href="mailto:{{ . }}"><span class="screen-reader-text">{{ cond $isChinese "邮箱：" "Email: " }}</span>{{ . }}</a>
+            </li>
+          {{- end }}
+          {{- with .Params.github }}
+            <li title="GitHub">
+              <span class="profile-link-icon" aria-hidden="true">{{ partial "svg.html" (dict "name" "github") }}</span>
+              <a href="{{ . }}" rel="noopener"><span class="screen-reader-text">GitHub: </span>{{ $ghUser }}</a>
+            </li>
+          {{- end }}
+          {{- with .Params.scholar }}
+            <li title="Google Scholar">
+              <span class="profile-link-icon" aria-hidden="true">{{ partial "scholar-icon.html" . }}</span>
+              <a href="{{ . }}" rel="noopener"><span class="screen-reader-text">Google Scholar: </span>{{ $name }}</a>
+            </li>
+          {{- end }}
+          {{- with .Params.orcid }}
+            <li title="ORCID {{ . }}">
+              <span class="profile-link-icon" aria-hidden="true">{{ partial "orcid-icon.html" . }}</span>
+              <a href="https://orcid.org/{{ . }}" rel="noopener"><span class="screen-reader-text">ORCID: </span>{{ $name }}</a>
+            </li>
+          {{- end }}
+          {{- with .Params.linkedin }}
+            <li title="LinkedIn">
+              <span class="profile-link-icon" aria-hidden="true">{{ partial "svg.html" (dict "name" "linkedin") }}</span>
+              <a href="{{ . }}" rel="noopener"><span class="screen-reader-text">LinkedIn: </span>{{ $name }}</a>
+            </li>
+          {{- end }}
+          {{- if or $cvZh $cvEn }}
+            <li title="{{ cond $isChinese "简历" "CV" }}">
+              <span class="profile-link-icon" aria-hidden="true">{{ partial "svg.html" (dict "name" "posts_single_wordcount") }}</span>
+              <span class="profile-cv">
+                {{- with $cvZh }}<a href="{{ .RelPermalink }}" download="{{ $fileName }}-CV-zh.pdf">{{ cond $isChinese "中文简历" "CV (Chinese)" }}</a>{{ end }}
+                {{- with $cvEn }}<a href="{{ .RelPermalink }}" download="{{ $fileName }}-CV-en.pdf">{{ cond $isChinese "英文简历" "CV (English)" }}</a>{{ end }}
+              </span>
+            </li>
+          {{- end }}
+        </ul>
+      </aside>
+
+      <div class="profile-main">
+        <section class="profile-bio" aria-labelledby="about-bio-title">
+          <h2 id="about-bio-title">👋 {{ cond $isChinese "简介" "About" }}</h2>
+          {{ .Content }}
+        </section>
+
+        {{- with .Params.focus }}
+          <section aria-labelledby="about-focus-title">
+            <h2 id="about-focus-title">🧭 {{ cond $isChinese "研究方向" "Research interests" }}</h2>
+            <ul class="interest-list">
+              {{- range . }}<li>{{ . }}</li>{{ end }}
+            </ul>
+          </section>
+        {{- end }}
+
+        {{- if or .Params.education .Params.award }}
+          <div class="two-col">
+            {{- with .Params.education }}
+              <section aria-labelledby="about-edu-title">
+                <h2 id="about-edu-title">🎓 {{ cond $isChinese "教育背景" "Education" }}</h2>
+                <ul class="timeline">
+                  {{- range . }}
+                    <li>
+                      <span class="when">{{ .period }}</span>
+                      <span class="what">{{ .degree }}<small>{{ .school }}</small></span>
+                    </li>
+                  {{- end }}
+                </ul>
+              </section>
+            {{- end }}
+            {{- with .Params.award }}
+              <section aria-labelledby="about-award-title">
+                <h2 id="about-award-title">🏆 {{ cond $isChinese "荣誉" "Honors" }}</h2>
+                <ul class="timeline">
+                  {{- range . }}
+                    <li>
+                      <span class="when">{{ .year }}</span>
+                      <span class="what">{{ .title }}</span>
+                    </li>
+                  {{- end }}
+                </ul>
+              </section>
+            {{- end }}
+          </div>
+        {{- end }}
+
+        {{- with $ghUser }}
+          <section aria-labelledby="about-gh-title">
+            <h2 id="about-gh-title">💻 GitHub</h2>
+            <div class="gh-panel">
+              {{- with $ghRepos }}<div class="gh-stat"><strong>{{ . }}</strong><span>{{ cond $isChinese "公开仓库" "public repositories" }}</span></div>{{ end }}
+              {{- with $ghPRs }}<div class="gh-stat"><strong>{{ . }}</strong><span>{{ cond $isChinese "近一年 PR" "PRs last year" }}</span></div>{{ end }}
+              {{- with $ghFollowers }}<div class="gh-stat"><strong>{{ . }}</strong><span>{{ cond $isChinese "关注者" "followers" }}</span></div>{{ end }}
+              {{- with $ghSince }}<div class="gh-stat"><strong>{{ . }}</strong><span>{{ cond $isChinese "加入 GitHub" "on GitHub since" }}</span></div>{{ end }}
+            </div>
+            {{- with $.Params.github_note }}<p class="gh-note">{{ . }}</p>{{ end }}
+
+            {{- with $ghRecentPRs }}
+              <h3 class="gh-subtitle">{{ cond $isChinese "最近的 Pull Request" "Recent pull requests" }}</h3>
+              <ul class="pr-list">
+                {{- range . }}
+                  {{- $repo := strings.TrimPrefix "https://api.github.com/repos/" .repository_url }}
+                  {{- $state := "open" }}
+                  {{- if and .pull_request .pull_request.merged_at }}{{ $state = "merged" }}{{ else if eq .state "closed" }}{{ $state = "closed" }}{{ end }}
+                  {{- $stateLabel := index (cond $isChinese (dict "open" "进行中" "merged" "已合并" "closed" "已关闭") (dict "open" "Open" "merged" "Merged" "closed" "Closed")) $state }}
+                  <li>
+                    <a class="pr-item" href="{{ .html_url }}" rel="noopener">
+                      <span class="pr-state pr-state-{{ $state }}">{{ $stateLabel }}</span>
+                      <span class="pr-body">
+                        <span class="pr-title">{{ .title }}</span>
+                        <span class="pr-meta">{{ $repo }} #{{ .number }} · {{ (time.AsTime .created_at).Format (cond $isChinese "2006-01-02" "Jan 2, 2006") }}</span>
+                      </span>
+                      <span class="pr-arrow" aria-hidden="true">→</span>
+                    </a>
+                  </li>
+                {{- end }}
+              </ul>
+            {{- end }}
+          </section>
+        {{- end }}
+
+        {{- with .Params.publication }}
+          <section aria-labelledby="about-pub-title">
+            <h2 id="about-pub-title">📚 {{ cond $isChinese "论文与预印本" "Publications & preprints" }}</h2>
+            <div class="paper-list">
+              {{- range . }}
+                {{- with .group }}<h3 class="paper-group">{{ . }}</h3>{{ end }}
+                <article class="paper-box">
+                  <div class="paper-media">
+                    {{- with .badge }}<span class="paper-badge">{{ . }}</span>{{ end }}
+                    {{- with .cover }}
+                      <img src="{{ . | relURL }}" alt="" loading="lazy">
+                    {{- else }}
+                      <div class="paper-cover" aria-hidden="true">
+                        <span class="paper-cover-venue">{{ .venue_short | default .venue }}</span>
+                        <span class="paper-cover-year">{{ .year }}</span>
+                      </div>
+                    {{- end }}
+                  </div>
+                  <div class="paper-content">
+                    <h4 class="paper-title">{{ if .doi }}<a href="{{ .doi }}" rel="noopener">{{ .title }}</a>{{ else }}{{ .title }}{{ end }}</h4>
+                    <p class="paper-authors">{{ .authors }}</p>
+                    <p class="paper-venue">{{ .venue }}{{ with .status }} · {{ . }}{{ end }}</p>
+                    {{- with .highlights }}
+                      <ul class="paper-highlights">
+                        {{- range . }}<li>{{ . }}</li>{{ end }}
+                      </ul>
+                    {{- else }}
+                      {{- with .summary }}<p class="paper-summary">{{ . }}</p>{{ end }}
+                    {{- end }}
+                    <p class="paper-links">
+                      {{- with .doi }}<a href="{{ . }}" rel="noopener">DOI</a>{{ end }}
+                      {{- with .pdf }}<a href="{{ . }}" rel="noopener">PDF</a>{{ end }}
+                      {{- with .code }}<a href="{{ . }}" rel="noopener">Code</a>{{ end }}
+                    </p>
+                  </div>
+                </article>
+              {{- end }}
+            </div>
+          </section>
+        {{- end }}
+
+        {{- with $recentNotes }}
+          <section aria-labelledby="about-notes-title">
+            <h2 id="about-notes-title">📝 {{ cond $isChinese "论文笔记" "Paper notes" }}</h2>
+            <p class="section-lede">
+              {{ cond $isChinese "读论文时整理的笔记，按时间倒序排列。" "Notes I write while reading papers, newest first." }}
+              {{- with site.GetPage (printf "/tags/%s" $notesTag) }} <a class="section-more" href="{{ .RelPermalink }}">{{ cond $isChinese "全部笔记" "All notes" }}</a>{{ end }}
+            </p>
+            <div class="notes-grid">
+              {{- range . }}
+                {{- $shot := printf "images/notes/%s.jpg" (lower .File.ContentBaseName) }}
+                {{- $crossLang := ne $.Language.Name $noteLang }}
+                <article class="note-card">
+                  {{- if fileExists (printf "static/%s" $shot) }}
+                    <a class="note-thumb" href="{{ .RelPermalink }}"{{ if $crossLang }} hreflang="{{ $noteLang }}"{{ end }} tabindex="-1" aria-hidden="true">
+                      <img src="{{ $shot | relURL }}" alt="" width="640" height="360" loading="lazy" decoding="async">
+                    </a>
+                  {{- end }}
+                  <div class="note-body">
+                    <p class="note-meta">{{ .Date.Format "2006-01" }} · {{ delimit .Params.tags " / " }}</p>
+                    <h3 class="note-title"><a href="{{ .RelPermalink }}"{{ if $crossLang }} hreflang="{{ $noteLang }}"{{ end }}>{{ .Title }}</a></h3>
+                    {{- with .Params.description }}<p class="note-summary">{{ . }}</p>{{ end }}
+                    <div class="note-links">
+                      <a class="note-primary" href="{{ .RelPermalink }}"{{ if $crossLang }} hreflang="{{ $noteLang }}"{{ end }}>{{ cond $isChinese "阅读笔记" "Read note (Chinese)" }}</a>
+                      {{- with .Params.paper_url }}<a href="{{ . }}" rel="noopener">{{ cond $isChinese "论文" "Paper" }}</a>{{ end }}
+                      {{- with .Params.paper_pdf }}<a href="{{ . }}" rel="noopener">PDF</a>{{ end }}
+                      {{- with .Params.code_url }}<a href="{{ . }}" rel="noopener">{{ cond $isChinese "代码" "Code" }}</a>{{ end }}
+                    </div>
+                  </div>
+                </article>
+              {{- end }}
+            </div>
+          </section>
+        {{- end }}
+      </div>
+    </div>
+  </main>
+{{ end }}
+
+{{ define "footer" }}
+  <footer id="site-footer" class="section-inner thin">{{ partial "footer.html" . }}</footer>
+{{ end }}

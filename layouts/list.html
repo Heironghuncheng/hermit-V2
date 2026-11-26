@@ -20,6 +20,9 @@
   {{- $isCategory   := in $permalink "categories" -}}
   {{- $isTaxonomy   := or $isTag $isCategory -}}
   {{- $listLayout   := .Site.Params.listLayout -}}
+  {{- if not (isset .Site.Params "listlayout") -}}
+    {{- $listLayout = slice "description" "tags" -}}
+  {{- end -}}
   {{- $dateFormat   := .Site.Params.dateform.ShortDate | default "Jan 2" -}}
   {{- $usesAnim     := ne false .Site.Params.usesAnimation -}}
 
@@ -35,6 +38,22 @@
     {{- end -}}
 
     {{- with .Content }}<div class="content">{{ . }}</div>{{ end -}}
+
+    {{- if and .IsSection (eq .Section "posts") }}
+      {{- $topics := slice }}
+      {{- range .Site.Params.postTopics }}
+        {{- with $.Site.GetPage (printf "/tags/%s" .) }}
+          {{- $topics = $topics | append . }}
+        {{- end }}
+      {{- end }}
+      {{- with $topics }}
+        <nav class="post-topics" aria-label="{{ cond (eq $.Site.Language.Lang "zh") "文章专题" "Post topics" }}">
+          {{- range . }}
+            <a class="tag" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+          {{- end }}
+        </nav>
+      {{- end }}
+    {{- end }}
 
     {{- /* ── Pinned posts (non-taxonomy pages only) ────────────────────────── */ -}}
     {{- $pinnedPages := where .Site.Pages ".Params.pin" true -}}

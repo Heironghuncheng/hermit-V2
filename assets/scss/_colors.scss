@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Default Colors for site
 $pine-green: #018472;
 $bright-grey: #eeeeee;
@@ -13,6 +15,14 @@ $taupe-grey: #878787;
 $chinese-silver: #cccccc;
 $anti-flash-white: #f1f1f1;
 $lapis-lazuli: #21759b; 
+
+// Shared palette for dark surfaces, text, and interactive states.
+$surface: #141414;
+$surface-raised: #202020;
+$divider: #343434;
+$muted-text: #b9b5af;
+$accent: #8bdbc7 !default;
+$accent-fill: color.mix($accent, $surface-raised, 24%);
 
 // Default Colors and Opacity for Admonition
 $blueberry: #448aff;
@@ -30,99 +40,98 @@ $admonition-background-opacity : 0.1;
 $dimmed-opacity: 0.8 !default;
 
 // Background color
-$html-background: $davys-grey !default;
+$html-background: #08090b !default;
 
 // Site Navigation color
-$site-nav-children-border-right:$css-grey !default;
+$site-nav-children-border-right: $divider !default;
 
 // Posts seperator in list view
-$post-item-border-bottom: $css-grey !default;
+$post-item-border-bottom: $divider !default;
 
 // Pinned posts group seperator in list view
-$pinned-posts-group-border-bottom: $css-grey !default;
+$pinned-posts-group-border-bottom: $divider !default;
 
 // Elements of the site which are expected to follow accent color
-// In this current form, `accentColor` in hugo.toml will have higher precedence than these declarations
-$aTag-mixin-a-box-shadow: $pine-green !default; // Box shadow for Mixin "aTag" used by figure element
-$aTag-mixin-a-hover-box-shadow: $pine-green !default; // Box shadow on hover for Mixin "aTag" used by figure element
-$content-anchor-hover: $pine-green !default; // Anchor text hover color
-$post-description-a-hover-border-bottom: $pine-green !default; // Anchor text on hover for post description in list
-$tableofcontents-a-hover-border-bottom: $pine-green !default; // Table of Contents on hover
-$scrolltotop-arrow: $pine-green !default; // Scroll yo Top arrow color
-$typewriter: $pine-green !default; // Typewriter carat color
-$footnote-ref-hover-background: $pine-green !default; // Footnote reference on hover
-$marked-background: $pine-green !default; // Marked text background color
-$inserted-text-underline: $pine-green !default; // Inserted text underline color
+$aTag-mixin-a-box-shadow: color.mix($accent, $surface-raised, 56%) !default;
+$aTag-mixin-a-hover-box-shadow: $accent-fill !default;
+$content-anchor-hover: $accent !default;
+$post-description-a-hover-border-bottom: $accent !default;
+$tableofcontents-a-hover-border-bottom: $accent !default;
+$scrolltotop-arrow: $accent !default;
+$typewriter: $accent !default;
+$footnote-ref-hover-background: $accent-fill !default;
+$marked-background: $accent-fill !default;
+$inserted-text-underline: $accent !default;
 
 // Footnote
-$footnote-ref-background: $japanese-indigo !default;
+$footnote-ref-background: $surface-raised !default;
 
 // Scroll to Top Default colors
 // Scroll to Top "Up arrow" color is defined as : $scrolltotop-arrow
 $scrolltotop-ring: $chinese-silver !default;
 
 // Page Scrollbar
-$pagescrollbar-background: $japanese-indigo !default;
-$pagescrollbar-thumb: $taupe-grey !default;
-$pagescrollbar-thumb-hover: $bright-grey !default;
+$pagescrollbar-background: $surface !default;
+$pagescrollbar-thumb: $granite-grey !default;
+$pagescrollbar-thumb-hover: $muted-text !default;
 
 // Table of Contents
 $tableofcontents-background: transparent;
 
 // Table of Contents Scrollbar
-$tableofcontents-scrollbar-track: darken($pagescrollbar-thumb, 10%) !default;
-$tableofcontents-scrollbar-thumb: $japanese-indigo !default;
-$tableofcontents-scrollbar-thumb-hover: lighten($japanese-indigo, 10%) !default;
+$tableofcontents-scrollbar-track: $pagescrollbar-background !default;
+$tableofcontents-scrollbar-thumb: $pagescrollbar-thumb !default;
+$tableofcontents-scrollbar-thumb-hover: $pagescrollbar-thumb-hover !default;
 
 // Text color
-$text: $bright-grey !default;
+$text: #efece7 !default;
 
 // Text selection color
-$text-select: $css-grey !default;
+$text-select: $accent-fill !default;
 
 // Marked text color
-$marked-text:$bright-grey !default;
+$marked-text: $text !default;
 
 // Link text color on hover
-$a-hover: $white !default;
+$a-hover: $accent !default;
 
 // 404 Page
-$btn-404-a-border: $bright-grey !default;
-$btn-404-a-hover: $white !default;
+$btn-404-a-border: $muted-text !default;
+$btn-404-a-hover: $accent !default;
 
 // Social Share links pane
-$share-links-background: $japanese-indigo !default;
-$share-links-border-color: $pine-green !default;
-$share-links-a: $css-grey !default;
-$share-links-a-hover-active-focus: $bright-grey !default;
+$share-links-background: $surface-raised !default;
+$share-links-border-color: $divider !default;
+$share-links-a: $muted-text !default;
+$share-links-a-hover-active-focus: $accent !default;
 
 // Code block, Mermaid block color
 $pre-code-background: transparent !default;
-$code-color: $bright-grey !default;
-$code-background:$arsenic !default;
-$syntax-background: $japanese-indigo !default;
-$pre-background: $japanese-indigo !default;
-$mermaid-background: $pine-tree !default;
+$code-color: $text !default;
+$code-background: $surface-raised !default;
+$syntax-background: $surface !default;
+$pre-background: $surface !default;
+$mermaid-background: $surface !default;
 
 // Code copy button
-$highlight-copy-btn: $white !default;
-$highlight-copy-btn-hover: $sonic-silver !default;
-$highlight-copy-btn-background: $granite-grey !default;
+$highlight-copy-btn: $text !default;
+$highlight-copy-btn-hover: $accent-fill !default;
+$highlight-copy-btn-background: $divider !default;
 
 // Site Header color
-$site-header-background:$arsenic !default;
+$site-header-background: $surface !default;
 
 // Mobile menu color
-$mobile-menu-background: $arsenic !default;
-$mobile-menu-border-color: $davys-grey !default;
+$mobile-menu-background: $surface-raised !default;
+$mobile-menu-border-color: $divider !default;
 
 // Accessibility - Screen reader
 $screen-reader-text: $lapis-lazuli !default;
 $screen-reader-text-background: $anti-flash-white !default;
 
 // Featured Image (or Background Image) Copyright section
-$featured-image-text: $bright-grey !default;
-$featured-image-background: rgba($arsenic, 0.45) !default;
+$featured-image-text: $text !default;
+$featured-image-background: rgba($surface, 0.75) !default;
 
 // Image Gallery specific colours
 $gallery-item-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !default; // Subtle shadow for depth.

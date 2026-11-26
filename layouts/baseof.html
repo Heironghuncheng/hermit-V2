@@ -3,16 +3,17 @@
 <html lang="{{.Site.Language.Lang}}">
 <head>
 {{ partial "google-tag-manager.html" (dict "context" . "name" "head") }}
-{{ $style := resources.Get "scss/style.scss" | resources.ExecuteAsTemplate "css/style.css" . | toCSS | minify | fingerprint -}}
+{{- $sass := dict "transpiler" "dartsass" -}}
+{{ $style := resources.Get "scss/style.scss" | resources.ExecuteAsTemplate "css/style.css" . | css.Sass $sass | minify | fingerprint -}}
 <link rel="stylesheet" media="screen" href="{{ $style.Permalink }}" {{ printf "integrity=%q" $style.Data.Integrity | safeHTMLAttr }} crossorigin="anonymous">
 
 {{- range .Params.custom_css -}}
-    {{ $c_css := resources.Get . | resources.ExecuteAsTemplate "css/style.css" $rootCtx | toCSS | minify | fingerprint -}}
+    {{ $c_css := resources.Get . | resources.ExecuteAsTemplate "css/style.css" $rootCtx | css.Sass $sass | minify | fingerprint -}}
 <link rel="stylesheet" media="screen" href="{{ $c_css.Permalink }}" {{ printf "integrity=%q" $c_css.Data.Integrity | safeHTMLAttr }} crossorigin="anonymous">
 {{- end -}}
 
 {{- if $.Page.Params.print -}}
-    {{- $PRNTCSS := resources.Get "custom_css/print.scss" | resources.ExecuteAsTemplate "css/style.css" $rootCtx | toCSS | minify | fingerprint -}}
+    {{- $PRNTCSS := resources.Get "custom_css/print.scss" | resources.ExecuteAsTemplate "css/style.css" $rootCtx | css.Sass $sass | minify | fingerprint -}}
 <link rel="stylesheet" media="print" href="{{ $PRNTCSS.Permalink }}" {{ printf "integrity=%q" $PRNTCSS.Data.Integrity | safeHTMLAttr }} crossorigin="anonymous">
 {{- end -}}
 {{ partial "analytics.html" . }}
@@ -25,12 +26,20 @@
 {{ partialCached "speculation-rules.html" . .RelPermalink }}
 </head>
 
-<body id="page">
+<body id="page"{{ if .Site.Params.starfield }} class="has-starfield"{{ end }}>
     {{- partial "google-tag-manager.html" (dict "context" . "name" "body") -}}
+    {{- if .Site.Params.starfield }}
+    <canvas id="site-starfield" aria-hidden="true"></canvas>
+    {{- end }}
     {{- block "header" . -}}{{ end -}}
     {{- block "main" . -}}{{ end -}}
     {{- block "footer" . -}}{{ end }}
     {{- partial "scroll-to-top.html" . }}
+
+    {{- if .Site.Params.starfield }}
+    {{- $stars := resources.Get "js/starfield.js" | minify | fingerprint }}
+    <script defer src="{{ $stars.RelPermalink }}" integrity="{{ $stars.Data.Integrity }}"></script>
+    {{- end }}
     
     {{- $main := resources.Get "js/main.js" -}}
     {{- if .Site.Params.code_copy_button | default true -}}

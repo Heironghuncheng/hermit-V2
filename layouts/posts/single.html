@@ -18,42 +18,61 @@
 	{{- if .Params.ImgCopyright }}<div class="bg-img-copyright">{{ .Params.ImgCopyright | safeHTML }}</div>{{- end }}
 	{{- end }}
 	<main class="site-main section-inner {{- if ne false .Site.Params.usesAnimation }} animated fadeIn faster {{- end -}}">
-		{{- if and (not (eq .Site.Params.legacyLayout nil)) (.Site.Params.legacyLayout) -}}
-		<article class="thin">
-			<header class="post-header">
-				<div class="post-date"><span>{{ .Date.Format (default "Jan 2, 2006" .Site.Params.dateform.LongDate) }}</span></div>
-				<h1>{{ .Title }}</h1>
-			</header>
-			<div class="content">
-				{{ .Content | safeHTML }}
-			</div>
-			{{- if $.Site.Params.pages.relatedPosts }}
-			{{- partial "related-posts.html" . -}}
-			{{- end }}
-			<hr class="post-end">
-			<footer class="post-description">{{- partial "posts_single_info.html" . -}}</footer>		
-		</article>
-		{{- else -}}
-		<article class="thin">
-			<header class="post-header">
-				<div class="post-date"><span>{{ .Date.Format (default "Jan 2, 2006" .Site.Params.dateform.LongDate) }}</span></div>
-				<h1>{{ .Title }}</h1>
-			</header>
-			<div class="post-description">{{- partial "posts_single_info.html" . -}}</div>
-			<hr class="post-end">
-			<div class="content">
-				 {{ .Content | safeHTML }}
-			</div>
-			{{ partial "brainMade.html" . }}
-			{{- if $.Site.Params.pages.relatedPosts }}
-			{{- partial "related-posts.html" . -}}
-			{{- end }}
-		</article>
-		{{- end -}}
+		{{- $legacy := .Site.Params.legacyLayout }}
+		{{- $toc := "" }}
 		{{- if .Params.toc }}
+			{{- if in (string .TableOfContents) "<a " }}{{ $toc = .TableOfContents }}{{ end }}
+		{{- end }}
+		{{- $tocLabel := i18n "tableOfContents" | default (cond (eq .Site.Language.Lang "zh") "目录" "Table of Contents") }}
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-date"><span>{{ .Date.Format (default "Jan 2, 2006" .Site.Params.dateform.LongDate) }}</span></div>
+				<h1>{{ .Title }}</h1>
+			</header>
+			{{- if not $legacy }}
+				<div class="post-description">{{- partial "posts_single_info.html" . -}}</div>
+				<hr class="post-end">
+			{{- end }}
+			{{- with $toc }}
+				<details class="post-toc">
+					<summary>{{ $tocLabel }}</summary>
+					{{ replace . `id="TableOfContents"` `id="InlineTableOfContents"` | safeHTML }}
+				</details>
+			{{- end }}
+			<div class="content">
+				{{- /* Some notes open with an H1 identical to the page title. Keep an
+				       empty anchor so the upstream table of contents can still target
+				       it, but do not print the title twice. */ -}}
+				{{- $body := .Content -}}
+				{{- with findRE `(?s)<h1[^>]*>.*?</h1>` $body -}}
+					{{- $first := index . 0 -}}
+					{{- if eq (strings.TrimSpace ($first | plainify)) $.Title -}}
+						{{- $anchorID := "" -}}
+						{{- with findRE `^<h1[^>]*id="([^"]+)"` $first -}}
+							{{- $anchorID = replaceRE `(?s)^<h1[^>]*id="([^"]+)".*$` "$1" $first -}}
+						{{- end -}}
+						{{- if $anchorID -}}
+							{{- $body = replace $body $first (printf `<span id="%s" aria-hidden="true"></span>` $anchorID) 1 -}}
+						{{- else -}}
+							{{- $body = replace $body $first "" 1 -}}
+						{{- end -}}
+					{{- end -}}
+				{{- end -}}
+				{{- $body | safeHTML -}}
+			</div>
+			{{- if not $legacy }}{{ partial "brainMade.html" . }}{{ end }}
+			{{- if $.Site.Params.pages.relatedPosts }}
+			{{- partial "related-posts.html" . -}}
+			{{- end }}
+			{{- if $legacy }}
+				<hr class="post-end">
+				<footer class="post-description">{{- partial "posts_single_info.html" . -}}</footer>
+			{{- end }}
+		</article>
+		{{- with $toc }}
 		<aside id="toc">
-			<div class="toc-title">{{- if fileExists "i18n" -}} {{ i18n "tableOfContents" }} {{- else -}} Table of Contents {{- end -}}</div>
-			{{ .TableOfContents }}
+			<div class="toc-title">{{ $tocLabel }}</div>
+			{{ . }}
 		</aside>
 		{{- end }}
 		<div class="post-nav thin">
@@ -74,5 +93,5 @@
 	</main>
 {{ end }}
 
-{{ define "footer" }}<footer id="site-footer" class="section-inner thin {{- if ne false .Site.Params.usesAnimation }} animated fadeIn faster {{- end -}}">{{- if templates.Exists "_partials/posts-footer.html" -}}{{- partialCached "posts-footer.html" . -}}{{- else -}}{{- partial "footer.html" . -}}{{- end -}}</footer>
+{{ define "footer" }}<footer id="site-footer" class="section-inner thin {{- if ne false .Site.Params.usesAnimation }} animated fadeIn faster {{- end -}}">{{- if templates.Exists "_partials/posts-footer.html" -}}{{- partialCached "posts-footer.html" . -}}{{- else -}}{{- partial "footer.html" . -}}{{- end }}</footer>
 {{ end }}

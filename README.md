@@ -23,6 +23,7 @@ The demo site doubles as the theme's full documentation — every feature is sho
 
   - **Debian users:** the Debian repositories may still carry an older Hugo binary. You will need to grab the `v0.146.0`+ binary directly from the [Hugo releases page](https://github.com/gohugoio/hugo/releases).
 
+- **Dart Sass** must be installed and available on `PATH`. The theme uses Sass modules.
 
 ## Installation
 
@@ -789,7 +790,7 @@ Copy any of the following from the theme into your own `assets/scss/` and edit f
 | `_scrolltotop.scss` | Scroll-to-top button styles |
 | `_accessibility.scss` | Accessibility-related styles |
 
-For site-wide CSS additions that don't fit neatly into the above files, create `assets/scss/_userstyles.scss`. Styles defined there are appended last and will override everything else.
+For site-wide CSS additions that don't fit neatly into the above files, create `assets/scss/_userstyles.scss`. These styles are appended last. Use `@use "colors";` or `@use "fonts";` at the top of that file to access theme variables.
 
 ### Layout Overrides
 
@@ -860,7 +861,7 @@ Place the following exact filenames in the `assets/identity/` directory for auto
 | `favicon-32x32.png`     | 32x32px       | Served as-is. Standard resolution for desktop browser tabs.                         |
 | `favicon-16x16.png`     | 16x16px       | Served as-is. Standard resolution for desktop browser tabs.                         |
 | `apple-touch-icon.png`  | 180x180px     | Served as-is. Utilized by iOS devices for home screen shortcuts.                    |
-| `icon-monochrome.svg`   | Vector (Any)  | Minified automatically. Injects your site's themeColor for Safari pinned tabs.      |
+| `icon-monochrome.svg`   | Vector (Any)  | Minified automatically. Uses `accentColor` for Safari pinned tabs.                  |
 | `site.webmanifest`      | NA            | Executed as a Hugo template. Generates unique output paths for multilingual sites.  |
 | `humans.txt`            | NA            | Executed as a Hugo template. Generates unique output paths for multilingual sites.  |
 

@@ -13,7 +13,7 @@
 {{- $summary := cond .IsPage (.Summary | plainify | htmlUnescape | truncate 160) "" }}
 {{- with .Description | default $summary | default site.Params.description -}}<meta name="description" content="{{ . }}">{{- end }}
 
-{{- $themeColor := site.Params.themeColor | default "#494f5c" }}
+{{- $themeColor := site.Params.themeColor | default "#08090b" }}
 <meta name="theme-color" content="{{ $themeColor }}">
 <link rel="canonical" href="{{ .Permalink }}">
 {{- range .AlternativeOutputFormats }}
@@ -37,7 +37,7 @@
   (dict "name" "favicon-32x32.png" "action" "none" "format" `<link rel="icon" href="%s" type="image/png" sizes="32x32">`)
   (dict "name" "favicon-16x16.png" "action" "none" "format" `<link rel="icon" href="%s" type="image/png" sizes="16x16">`)
   (dict "name" "apple-touch-icon.png" "action" "none" "format" `<link rel="apple-touch-icon" href="%s" sizes="180x180">`)
-  (dict "name" "icon-monochrome.svg" "action" "minify" "format" (printf `<link rel="mask-icon" href="%%s" type="image/svg+xml" sizes="any" color="%s">` $themeColor))
+  (dict "name" "icon-monochrome.svg" "action" "minify" "format" (printf `<link rel="mask-icon" href="%%s" type="image/svg+xml" sizes="any" color="%s">` (site.Params.accentColor | default "#8bdbc7")))
   (dict "name" "favicon.svg" "action" "minify" "format" `<link rel="icon" href="%s" type="image/svg+xml" sizes="any">`)
 -}}
 

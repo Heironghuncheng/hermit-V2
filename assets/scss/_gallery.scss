@@ -1,20 +1,6 @@
-// assets/scss/_gallery.scss
-//
-// Styles for the image gallery shortcode and its lightbox.
-//
-// Expected SCSS variables (set before @import in your theme):
-//   $thumbnail                         — grid cell size, e.g. 300px
-//   $gallery-item-box-shadow           — shadow on figure cells
-//   $gallery-item-hover-box-shadow     — shadow on figure cells (hover)
-//   $gallery-item-caption-background   — overlay caption background (rgba)
-//   $gallery-item-caption-color        — overlay caption text colour
-//   $lightbox-overlay-background       — lightbox backdrop colour (rgba)
-//   $lightbox-image-box-shadow         — shadow on the enlarged lightbox image
-//   $lightbox-caption-color            — lightbox caption text colour
-//   $lightbox-close-nav-color          — close / nav button colour
-//   $lightbox-close-color-hover        — close button colour on hover
-//   $lightbox-nav-background-color     — nav button background (rgba)
-//   $lightbox-nav-background-color-hover — nav button background on hover
+@use "colors" as *;
+
+$thumbnail: 300px !default;
 
 
 // ---------------------------------------------------------------------------

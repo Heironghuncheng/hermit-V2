@@ -1,42 +1,18 @@
-// ==========================================
-// STYLESHEET IMPORTS AND DEPENDENCIES
-// ==========================================
-// Import base styling modules for colors, fonts, and core functionality
-@import "normalize";
-{{- if ne false .Site.Params.usesAnimation }}@import "animate";{{ end -}} /* Conditionally import animation styles if enabled in site configuration */
-@import "colors";
-@import "fonts";
-@import "variables";
-@import "admonition";
-@import "mixins";
-@import "syntax";
-@import "accessibility";
-{{- if and .Site.Params.shareSocial (templates.Exists "_partials/social-share.html") }}@import "socialshare";{{ end -}} /* Conditionally import share social styles if enabled in site configuration */
-{{- with .Site.Params.gallery -}} /* Conditionally import gallery styles and set thumbnail size if gallery feature is enabled */
-  {{- if .enable }}
-$thumbnail: {{ printf "%spx" (.thumbnail | default "300") }};
-@import "gallery";
-  {{- end }}
-{{- end -}}
-// ==========================================
-// DYNAMIC ACCENT COLOR CONFIGURATION
-// ==========================================
-// Override default accent color variables with site-specific accent color from hugo.toml
-// If no custom accent color is specified, fallback values from _colors.scss will be used
-{{- with .Site.Params.accentColor }}
-$aTag-mixin-a-box-shadow: {{.}};
-$aTag-mixin-a-hover-box-shadow: {{.}};
-$content-anchor-hover: {{.}};
-$footnote-ref-hover-background: {{.}};
-$post-description-a-hover-border-bottom: {{.}};
-$tableofcontents-a-hover-border-bottom: {{.}};
-$scrolltotop-arrow: {{.}};
-$typewriter: {{.}};
-$marked-background: {{.}};
-$inserted-text-underline: {{.}};
-{{ end -}}
-
-{{- if and (.Site.Params.scrollToTop) }}@import "scrolltotop";{{ end -}}  /* Conditionally import scroll to top styles if enabled in site configuration */
+@use "sass:meta";
+@use "normalize";
+{{ if ne false .Site.Params.usesAnimation }}@use "animate";{{ end }}
+@use "colors" as *{{ with .Site.Params.accentColor }} with ($accent: {{ . }}){{ end }};
+@use "fonts" as *;
+@use "variables" as *;
+@use "admonition";
+@use "mixins" as *;
+@use "syntax";
+@use "accessibility";
+{{ if and .Site.Params.shareSocial (templates.Exists "_partials/social-share.html") }}@use "socialshare";{{ end }}
+{{ with .Site.Params.gallery }}{{ if .enable }}
+@use "gallery" with ($thumbnail: {{ printf "%spx" (.thumbnail | default "300") }});
+{{ end }}{{ end }}
+{{ if .Site.Params.scrollToTop }}@use "scrolltotop";{{ end }}
 
 
 // ==========================================
@@ -44,6 +20,20 @@ $inserted-text-underline: {{.}};
 // ==========================================
 // Customize the background color of selected text across browsers
 @include selection-highlight($text-select);
+
+.has-starfield {
+  isolation: isolate;
+}
+
+#site-starfield {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2; // Keep featured-image overlays above the canvas.
+  pointer-events: none;
+  background: $html-background;
+}
 
 // ==========================================
 // WEBKIT SCROLLBAR CUSTOMIZATION
@@ -64,7 +54,11 @@ html {
 // ==========================================
 // Set global HTML properties including background, typography, and smooth scrolling
 html {
+  --theme-divider: #{$divider};
+  --theme-muted-text: #{$muted-text};
+  --theme-accent: #{$accent};
   background: $html-background;
+  color-scheme: dark;
   line-height: $html-line-height;
   letter-spacing: $html-letter-spacing;
   scroll-behavior: $html-scroll-behavior;
@@ -180,6 +174,15 @@ a {
   }
 }
 
+:is(a, button, summary) {
+  -webkit-tap-highlight-color: rgba($accent, 0.22);
+
+  &:focus-visible {
+    outline: 2px solid $accent;
+    outline-offset: 3px;
+  }
+}
+
 // Style horizontal rule elements with dashed appearance
 hr {
   opacity: $hr-opacity;
@@ -256,7 +259,7 @@ table {
   bottom: $site-header-bottom;
   width: $site-header-width;
   box-sizing: $site-header-box-sizing;
-  box-shadow: $site-header-box-shadow;
+  box-shadow: 0 -1px $divider, $site-header-box-shadow;
   background-color: $site-header-background;
   animation-duration: $site-header-animation-duration;
   animation-fill-mode: $site-header-animation-fill-mode;
@@ -286,7 +289,7 @@ table {
     // Parent menu items with children indicators
     .has-children {
       padding-right: $site-nav-children-padding-right;
-      border-right: $site-nav-children-border-right;
+      border-right: $site-nav-child-divider;
     }
 
     // Sub-menu item spacing
@@ -342,7 +345,6 @@ table {
   z-index: $mobile-menu-z-index;
   border-radius: $mobile-menu-border-radius;
   border: $mobile-menu-border $mobile-menu-border-color;
-  border-style: $mobile-menu-border-style;
   box-sizing: $mobile-menu-box-sizing;
   box-shadow: $mobile-menu-box-shadow;
   background-color: $mobile-menu-background;
@@ -533,6 +535,22 @@ p.img-404 {
 // ==========================================
 // BLOG POST LISTING PAGE (list.html)
 // ==========================================
+.post-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4em 1em;
+  margin-bottom: 1.75em;
+
+  a {
+    color: $accent;
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    text-decoration: underline;
+    text-underline-offset: .2em;
+  }
+}
+
 // Yearly post grouping container with flexible layout
 .posts-group {
   display: flex;
@@ -552,18 +570,26 @@ p.img-404 {
   }
 
   // List of posts within each year group
-  .posts-list {@include unstyled-flex-list;}
+  .posts-list {
+    @include unstyled-flex-list;
+    min-width: 0;
+  }
 
   // Individual post item styling with divider
   .post-item {
     border-bottom: $post-item-border-width $post-item-border-bottom $post-item-border-style;
 
-    a {
+    > a {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
       padding: 10px 0;
     }
+  }
+
+  .post-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   // Post publication date display
@@ -578,12 +604,13 @@ p.img-404 {
   .post-categories {
     display: flex;
     flex-wrap: wrap;
-    flex-shrink: 0;
-    font-size: xx-small;
+    font-size: .85rem;
     @include dimmed;
 
     a {
       margin-right: $post-tag-margin-right;
+      padding: .38em 0;
+      overflow-wrap: anywhere;
     }
   }
   
@@ -593,13 +620,17 @@ p.img-404 {
 
   // Post excerpt/description styling
   .post-description {
-    font-size:x-small;
+    display: block;
+    margin-bottom: .3em;
+    font-size: .95rem;
+    line-height: 1.5;
     @include dimmed;
   }
   
   // Container for post metadata (tags, categories)
   .post-taxonomy {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-start;
     align-items: baseline;
   }
@@ -894,6 +925,35 @@ a.footnote-ref {
 // ==========================================
 // TABLE OF CONTENTS (TOC) FUNCTIONALITY
 // ==========================================
+.post-toc {
+  margin: 0 0 1.5rem;
+  border-top: 1px solid $post-item-border-bottom;
+  border-bottom: 1px solid $post-item-border-bottom;
+
+  summary {
+    padding: .65rem .2rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  nav {
+    margin: 0 0 .85rem;
+  }
+
+  ul {
+    margin: .15em 0;
+    padding-inline-start: 1.25em;
+  }
+
+  a {
+    display: inline-block;
+    padding-block: .2em;
+    overflow-wrap: anywhere;
+    text-decoration: underline;
+    text-underline-offset: .2em;
+  }
+}
+
 // Fixed-position table of contents for long articles
 #toc {
   position: fixed;
@@ -1188,6 +1248,9 @@ a.footnote-ref {
 
 // Large Desktop - Wide desktop monitors (1300px and up)
 @media (min-width: 1300px) {
+  .post-toc {
+    display: none;
+  }
   .site-main {
     margin-top: 8em;
   }
@@ -1251,4 +1314,5 @@ a.footnote-ref {
 // USER CUSTOMIZATION OVERRIDE
 // ==========================================
 // Import user-specific custom styles if they exist - these will override all built-in styles
-{{ with resources.Get "scss/_userstyles.scss" }}@import "userstyles";{{ end }}
+{{ with resources.Get "scss/_refresh.scss" }}@include meta.load-css("refresh");{{ end }}
+{{ with resources.Get "scss/_userstyles.scss" }}@include meta.load-css("userstyles");{{ end }}

@@ -1,20 +1,21 @@
+{{- $about := site.GetPage "/about" -}}
 <header id="site-header" {{- if .Site.Params.usesAnimation }} class="animated slideInUp" {{- end -}}>
 	<div class="hdr-wrapper section-inner">
 		<div class="hdr-left">
 			<div class="site-branding">
 				<a href="{{.Site.BaseURL}}">{{ .Site.Title }}</a>
 			</div>
-			<nav class="site-nav hide-in-mobile">{{- partialCached "menu.html" . -}}</nav>
+			<nav class="site-nav hide-in-mobile">{{- partialCached "menu.html" . .Language.Name -}}</nav>
 		</div>
 		<div class="hdr-right hdr-icons">
 			{{ if (or .Params.images .Params.featuredImg) -}}
 			<button id="img-btn" class="hdr-btn" title="{{- if fileExists " i18n" -}} {{ i18n "featuredImage" }} {{- else -}} Featured Image {{- end -}}">{{- partial "svg.html" (dict "context" . "name" "featuredImg") -}}</button>
 			{{- end }}
-			{{- with .Params.toc -}}
+			{{- if and .Params.toc (in (string .TableOfContents) "<a ") -}}
 			<button id="toc-btn" class="hdr-btn desktop-only-ib" title="{{- if fileExists " i18n" -}} {{i18n "tableOfContents" }} {{- else -}} Table Of Contents {{- end -}}">{{- partial "svg.html" (dict "context" . "name" "toc") -}}</button>
 			{{- end -}}
-			{{- with .Site.Params.socialLinks -}}
-			<span class="hdr-links hide-in-mobile">{{- partialCached "social-icons.html" . -}}</span>
+			{{- with $about -}}
+			<span class="hdr-media hide-in-mobile">{{ partial "about-media-icons.html" . }}</span>
 			{{- end -}}
 			{{- if and (not (eq .Site.Params.shareSocial nil)) (.Site.Params.shareSocial) (templates.Exists "_partials/social-share.html") -}}{{- partial "social-share.html" . -}}{{- end -}}
 			<button id="menu-btn" class="hdr-btn" title="{{- if fileExists " i18n" -}} {{ i18n "menu" }} {{- else -}} Menu {{- end -}}">{{- partial "svg.html" (dict "context" . "name" "menuBtn") -}}</button>
@@ -23,6 +24,15 @@
 </header>
 <div id="mobile-menu" {{- if ne false .Site.Params.usesAnimation }} class="animated fast" {{- end -}}>
 	<ul>
-		{{- partialCached "menu.html" (dict "context" . "mobile" true) "mobile" -}}
+		{{- partialCached "menu.html" (dict "context" . "mobile" true) .Language.Name "mobile" -}}
 	</ul>
+	{{- with $about -}}
+	<div class="mobile-media">
+		{{- with .Params.email }}<a href="mailto:{{ . }}">Email</a>{{ end -}}
+		{{- with .Params.github }}<a href="{{ . }}" target="_blank" rel="noopener me">GitHub</a>{{ end -}}
+		{{- with .Params.scholar }}<a href="{{ . }}" target="_blank" rel="noopener me">Scholar</a>{{ end -}}
+		{{- with .Params.orcid }}<a href="https://orcid.org/{{ . }}" target="_blank" rel="noopener me">ORCID</a>{{ end -}}
+		{{- with .Params.linkedin }}<a href="{{ . }}" target="_blank" rel="noopener me">LinkedIn</a>{{ end -}}
+	</div>
+	{{- end -}}
 </div>

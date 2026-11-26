@@ -76,8 +76,8 @@ enableEmoji = true
 [params]
   # description = "CHANGE ME SITE DESCRIPTION"
   # images = [""]
-  themeColor = "#494f5c"
-  accentColor = "#018472"
+  themeColor = "#08090b"
+  accentColor = "#8bdbc7"
 
   #homeSubtitle = "CHANGE ME HOME SUBTITLE"
   footerCopyright = "CHANGE ME FOOTER COPYRIGHT"

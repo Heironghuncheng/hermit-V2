@@ -1,0 +1,8 @@
+{{- $about := site.GetPage "/about" -}}
+{{- with $about -}}
+  {{- with .Params.email }}<a href="mailto:{{ . }}" title="Email">{{ partial "svg.html" (dict "name" "email") }}</a>{{ end -}}
+  {{- with .Params.github }}<a href="{{ . }}" target="_blank" rel="noopener me" title="GitHub">{{ partial "svg.html" (dict "name" "github") }}</a>{{ end -}}
+  {{- with .Params.scholar }}<a href="{{ . }}" target="_blank" rel="noopener me" title="Google Scholar">{{ partial "scholar-icon.html" . }}</a>{{ end -}}
+  {{- with .Params.orcid }}<a href="https://orcid.org/{{ . }}" target="_blank" rel="noopener me" title="ORCID">{{ partial "orcid-icon.html" . }}</a>{{ end -}}
+  {{- with .Params.linkedin }}<a href="{{ . }}" target="_blank" rel="noopener me" title="LinkedIn">{{ partial "svg.html" (dict "name" "linkedin") }}</a>{{ end -}}
+{{- end -}}
