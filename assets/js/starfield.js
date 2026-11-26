@@ -10,13 +10,13 @@
   let width, height, stars;
   let rotation = 0;
   let elapsed = 0;
-  let nextMeteor = 4;
-  let meteor = null;
+  let nextMeteor = 1.2;
+  let meteors = [];
   let frame;
   let lastTime;
 
-  function drawMeteor() {
-    if (!meteor || reducedMotion.matches) return;
+  function drawMeteor(meteor) {
+    if (reducedMotion.matches) return;
 
     const age = elapsed - meteor.start;
     if (age < 0 || age >= meteor.life) return;
@@ -44,7 +44,7 @@
 
     ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
     ctx.beginPath();
-    ctx.arc(x, y, 1.35, 0, turn);
+    ctx.arc(x, y, 0.85, 0, turn);
     ctx.fill();
     ctx.restore();
   }
@@ -60,14 +60,16 @@
       ctx.fillStyle = star.color;
       ctx.fillRect(x, y, star.size, star.size);
     }
-    drawMeteor();
+    for (const meteor of meteors) drawMeteor(meteor);
   }
 
-  function spawnMeteor() {
-    const speed = 420 + Math.random() * 90;
+  function spawnMeteor(delay = 0) {
+    if (meteors.length >= 6) return;
+
+    const speed = 280 + Math.random() * 420;
     const angle = Math.PI * (0.12 + Math.random() * 0.1);
-    meteor = {
-      start: elapsed,
+    meteors.push({
+      start: elapsed + delay,
       x: width * (0.08 + Math.random() * 0.5),
       y: height * (0.05 + Math.random() * 0.35),
       vx: Math.cos(angle) * speed,
@@ -75,7 +77,7 @@
       speed,
       length: 90 + Math.random() * 45,
       life: 0.9,
-    };
+    });
   }
 
   function resize() {
@@ -107,11 +109,11 @@
     lastTime = now;
     elapsed += dt;
     rotation = (rotation + dt * 0.012) % turn;
-    if (!meteor && elapsed >= nextMeteor) {
+    meteors = meteors.filter((meteor) => elapsed - meteor.start < meteor.life);
+    if (elapsed >= nextMeteor) {
       spawnMeteor();
-    } else if (meteor && elapsed - meteor.start >= meteor.life) {
-      meteor = null;
-      nextMeteor = elapsed + 6 + Math.random() * 5;
+      if (Math.random() < 0.5) spawnMeteor(0.35 + Math.random() * 1.3);
+      nextMeteor = elapsed + 2.8 + Math.random() * 3.4;
     }
     draw();
     frame = requestAnimationFrame(animate);
