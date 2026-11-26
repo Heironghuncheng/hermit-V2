@@ -1,0 +1,48 @@
+{{ define "head" }}
+  {{- $style := resources.Get "css/cv.css" | minify | fingerprint }}
+  {{- $script := resources.Get "js/cv.js" | minify | fingerprint }}
+  <link rel="stylesheet" href="{{ $style.RelPermalink }}" integrity="{{ $style.Data.Integrity }}">
+  <script defer src="{{ $script.RelPermalink }}" integrity="{{ $script.Data.Integrity }}"></script>
+  {{- if .IsTranslated }}
+    {{- range .AllTranslations }}
+      <link rel="alternate" hreflang="{{ .Language.Name }}" href="{{ .Permalink }}">
+    {{- end }}
+  {{- end }}
+{{ end }}
+
+{{ define "header" }}
+  {{ partial "header.html" . }}
+{{ end }}
+
+{{ define "main" }}
+  {{- $resume := resources.Get .Params.cv_html }}
+  {{- $pdf := resources.Get .Params.cv_pdf }}
+  {{- if not (and $resume $pdf) }}
+    {{- errorf "CV: missing HTML or PDF for %s" .Path }}
+  {{- else }}
+    {{- /* Isolate the standalone resume's print styles from the blog theme. */}}
+    {{- $head := `<base target="_blank"><style>html, html[lang] body { min-height: 0; } body { display: flow-root; }</style>` }}
+    {{- with .Params.cv_embed_css }}
+      {{- $style := resources.Get . | minify | fingerprint }}
+      {{- $head = printf `%s<link rel="stylesheet" href="%s" integrity="%s">` $head $style.RelPermalink $style.Data.Integrity }}
+    {{- end }}
+    {{- $document := replace $resume.Content "</head>" (printf "%s</head>" $head) 1 }}
+    {{- $name := replace (.Site.Params.author.name | default .Site.Title) " " "-" }}
+    <main class="site-main section-inner cv-page" style="--cv-document-width: {{ .Params.cv_document_width }}px">
+      <div class="cv-toolbar">
+        <h1>{{ .Title }}</h1>
+        <div class="cv-actions">
+          {{- range .Translations }}
+            <a href="{{ .RelPermalink }}" hreflang="{{ .Language.Name }}" lang="{{ .Language.Name }}">{{ .Language.Label }}</a>
+          {{- end }}
+          <a class="cv-download" href="{{ $pdf.RelPermalink }}" download="{{ $name }}-CV-{{ .Language.Name }}.pdf">{{ .Params.cv_download_label }}</a>
+        </div>
+      </div>
+      <iframe class="cv-document" title="{{ .Title }}" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" srcdoc="{{ $document }}"></iframe>
+    </main>
+  {{- end }}
+{{ end }}
+
+{{ define "footer" }}
+  <footer id="site-footer" class="section-inner thin">{{ partial "footer.html" . }}</footer>
+{{ end }}

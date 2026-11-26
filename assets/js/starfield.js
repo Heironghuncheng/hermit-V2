@@ -7,7 +7,7 @@
 
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
   const turn = Math.PI * 2;
-  let width, height, stars;
+  let width, height, ratio, stars;
   let rotation = 0;
   let elapsed = 0;
   let nextMeteor = 1.2;
@@ -50,7 +50,9 @@
   }
 
   function draw() {
-    ctx.clearRect(0, 0, width, height);
+    ctx.resetTransform();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     const cx = width / 2;
     const cy = height / 2;
     for (const star of stars) {
@@ -81,12 +83,16 @@
   }
 
   function resize() {
-    width = canvas.clientWidth;
-    height = canvas.clientHeight;
-    const ratio = Math.min(devicePixelRatio, 1.5);
+    const nextWidth = canvas.clientWidth;
+    const nextHeight = canvas.clientHeight;
+    const nextRatio = Math.min(devicePixelRatio, 1.5);
+    if (width === nextWidth && height === nextHeight && ratio === nextRatio) return;
+
+    width = nextWidth;
+    height = nextHeight;
+    ratio = nextRatio;
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
     const radius = Math.hypot(width, height) / 2;
     const density = width < 761 ? 0.00019 : 0.00029;
@@ -130,6 +136,7 @@
 
   resize();
   updateMotion();
+  new ResizeObserver(resize).observe(canvas);
   window.addEventListener("resize", resize);
   document.addEventListener("visibilitychange", updateMotion);
   reducedMotion.addEventListener("change", updateMotion);

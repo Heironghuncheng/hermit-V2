@@ -1,0 +1,57 @@
+.cv-page {
+  max-width: var(--cv-document-width);
+}
+
+.cv-toolbar,
+.cv-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+
+.cv-toolbar {
+  justify-content: space-between;
+  padding-block: .85rem;
+  margin-bottom: .85rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.cv-toolbar h1 {
+  margin: 0;
+  font-size: 1.65rem;
+  letter-spacing: 0;
+}
+
+.cv-actions a {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.cv-actions .cv-download {
+  padding: .45rem .75rem;
+  border: 1px solid var(--accent-line);
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.cv-actions a:hover {
+  color: var(--ink);
+}
+
+.cv-actions .cv-download:hover,
+.cv-actions .cv-download:focus-visible {
+  background: var(--surface-raised);
+  border-color: var(--accent);
+}
+
+.cv-document {
+  display: block;
+  width: 100%;
+  height: 75vh;
+  border: 0;
+  border-radius: 6px;
+  outline: 1px solid var(--line);
+  background: #fff;
+}

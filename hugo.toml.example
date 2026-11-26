@@ -49,7 +49,7 @@ enableEmoji = true
 
 [params.author]
   name = "CHANGE SITE AUTHOR"
-  about = "CHANGE SITE AUTHOR ABOUT"
+  # about = "/about-hugo" # Set this only after creating the author page.
 
 [blackfriday]
   # hrefTargetBlank = true
@@ -83,6 +83,7 @@ enableEmoji = true
   footerCopyright = "CHANGE ME FOOTER COPYRIGHT"
   # footerHideThemeName = false
   # bgImg = ""
+  # starfield = true # Animated background across the site, including CV pages. Overrides the home background image and stays still with reduced motion.
   # gitUrl = "https://github.com/1bl4z3r/hermit-V2/tree/staging"
   justifyContent = false
   code_copy_button = true
@@ -181,3 +182,21 @@ enableEmoji = true
     name = "About"
     url = "about-hugo/"
     weight = 20
+
+  # Enable after creating the CV page. For multilingual menus, add the entry
+  # under [[languages.<lang>.menus.main]] for each language with a CV page.
+  # [[menu.main]]
+  #   name = "CV"
+  #   pageRef = "/cv"
+  #   weight = 30
+
+# CV page: copy this TOML front matter into content/cv/index.md, between +++
+# lines. For translations, use index.<lang>.md with that language's assets and
+# labels. Asset paths below are relative to the site's assets/ directory.
+# title = "CV"
+# layout = "cv"
+# cv_html = "cv/index.html"
+# cv_pdf = "cv/resume.pdf"
+# cv_document_width = 794 # Maximum document width in CSS pixels.
+# cv_download_label = "Download PDF"
+# cv_embed_css = "css/cv-document.css" # Optional stylesheet inside the embedded CV.
